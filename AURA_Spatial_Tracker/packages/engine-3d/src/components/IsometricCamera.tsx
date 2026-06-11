@@ -1,4 +1,5 @@
-import { useRef, useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
+import { useThree } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera, OrthographicCamera } from '@react-three/drei'
 import { useSpatialStore } from '@aura/state-store'
 
@@ -6,24 +7,32 @@ export function IsometricCamera() {
   const isDraggingFurniture = useSpatialStore(state => state.isDraggingFurniture)
   const cameraProjection = useSpatialStore(state => state.cameraProjection)
   const cameraView = useSpatialStore(state => state.cameraView)
-  
-  const controlsRef = useRef<any>(null)
+  const focusedFurnitureId = useSpatialStore(state => state.focusedFurnitureId)
+  const furniture = useSpatialStore(state => state.furniture)
+  const { camera } = useThree()
 
-  // A very simple, non-hijacking snap to Top/Front/Iso views.
-  // We do not animate this, we just snap the camera to avoid breaking math.
+  const target = useMemo<[number, number, number]>(() => {
+    const focusedFurniture = furniture.find(f => f.id === focusedFurnitureId)
+    if (!focusedFurniture) return [0, 2, 0]
+
+    const [x, y, z] = focusedFurniture.position
+    return [x, y + 2, z]
+  }, [focusedFurnitureId, furniture])
+
   useEffect(() => {
-    if (!controlsRef.current) return
+    const [tx, ty, tz] = target
 
     if (cameraView === 'TOP') {
-      controlsRef.current.object.position.set(0, 60, 0)
+      camera.position.set(tx, ty + 35, tz + 0.01)
     } else if (cameraView === 'FRONT') {
-      controlsRef.current.object.position.set(0, 5, 45)
+      camera.position.set(tx, ty + 4, tz + 22)
     } else {
-      controlsRef.current.object.position.set(0, 25, 45)
+      camera.position.set(tx + 18, ty + 12, tz + 18)
     }
-    controlsRef.current.target.set(0, 0, 0)
-    controlsRef.current.update()
-  }, [cameraView])
+
+    camera.lookAt(tx, ty, tz)
+    camera.updateProjectionMatrix()
+  }, [camera, cameraView, target])
 
   return (
     <>
@@ -51,8 +60,8 @@ export function IsometricCamera() {
         No swooping, no custom math, no distortion. 
       */}
       <OrbitControls 
-        ref={controlsRef}
         enabled={!isDraggingFurniture}
+        target={target}
         minDistance={2}
         maxDistance={200}
         makeDefault
