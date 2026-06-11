@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useThree } from '@react-three/fiber'
 import { OrbitControls, PerspectiveCamera, OrthographicCamera } from '@react-three/drei'
 import { useSpatialStore } from '@aura/state-store'
+import * as THREE from 'three'
 
 export function IsometricCamera() {
   const isDraggingFurniture = useSpatialStore(state => state.isDraggingFurniture)
@@ -21,13 +22,15 @@ export function IsometricCamera() {
 
   useEffect(() => {
     const [tx, ty, tz] = target
+    const clampedX = THREE.MathUtils.clamp(tx, -8, 8)
+    const clampedZ = THREE.MathUtils.clamp(tz, -8, 8)
 
     if (cameraView === 'TOP') {
-      camera.position.set(tx, ty + 35, tz + 0.01)
+      camera.position.set(clampedX, 11, clampedZ + 0.01)
     } else if (cameraView === 'FRONT') {
-      camera.position.set(tx, ty + 4, tz + 22)
+      camera.position.set(clampedX, 5, clampedZ + 16)
     } else {
-      camera.position.set(tx + 18, ty + 12, tz + 18)
+      camera.position.set(clampedX + 12, 10, clampedZ + 12)
     }
 
     camera.lookAt(tx, ty, tz)

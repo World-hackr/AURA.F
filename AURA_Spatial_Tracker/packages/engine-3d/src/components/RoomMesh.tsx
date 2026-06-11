@@ -15,7 +15,10 @@ export function RoomMesh() {
         <boxGeometry args={[w, h, d]} />
         <meshStandardMaterial 
           color="#475569" /* Darker slate to make white edges pop */
-          side={THREE.BackSide} 
+          side={THREE.DoubleSide}
+          transparent
+          opacity={0.08}
+          depthWrite={false}
           roughness={1.0} 
           metalness={0.0}
         />
