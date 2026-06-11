@@ -4,19 +4,20 @@
   "main": "src/index.ts",
   "dependencies": {
     "@aura/state-store": "workspace:*",
-    "@react-three/drei": "^9.96.1",
-    "@react-three/fiber": "^8.15.12",
-    "@use-gesture/react": "^10.3.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
+    "@use-gesture/react": "^10.3.1",
     "camera-controls": "^3.1.2",
-    "lucide-react": "^0.300.0",
-    "three": "^0.160.0"
+    "lucide-react": "^1.17.0",
+    "three": "^0.184.0"
   },
   "devDependencies": {
-    "@types/three": "^0.160.0",
-    "react": "^18.2.0",
-    "typescript": "^5.0.2"
+    "@types/react": "^19.2.14",
+    "@types/three": "^0.184.1",
+    "react": "^19.2.6",
+    "typescript": "~6.0.2"
   },
   "peerDependencies": {
-    "react": "^18.2.0"
+    "react": "^19.2.0"
   }
 }

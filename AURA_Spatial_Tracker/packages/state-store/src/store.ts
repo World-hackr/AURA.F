@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
-import { Furniture, Container, Item, Vector3 } from './types';
+import type { Container, Furniture, Item, Vector3 } from './types';
 
 export type CameraViewType = 'ISO' | 'TOP' | 'FRONT';
 export type CameraProjectionType = 'PERSPECTIVE' | 'ORTHOGRAPHIC';
@@ -22,6 +22,7 @@ interface SpatialState {
   // --- Actions: State Mutators ---
   setRoomDimensions: (dimensions: Vector3) => void;
   addFurniture: (modelId: string, position: Vector3) => void;
+  updateFurnitureName: (id: string, name: string) => void;
   updateFurniturePosition: (id: string, newPosition: Vector3) => void;
   updateFurnitureDimensions: (id: string, newDimensions: Vector3) => void;
   addContainer: (furnitureId: string, name: string, type: Container['type']) => void;
@@ -37,7 +38,7 @@ interface SpatialState {
   setGridOpacity: (opacity: number) => void;
   
   // --- Selectors (Derived Data) ---
-  getSearchResults: () => Array<{ item: Item, containerName: string, furnitureName: string, furnitureId: string }>;
+  getSearchResults: () => Array<{ item: Item, containerName: string, containerId: string, furnitureName: string, furnitureId: string }>;
 }
 
 export const useSpatialStore = create<SpatialState>((set, get) => ({
@@ -70,6 +71,12 @@ export const useSpatialStore = create<SpatialState>((set, get) => ({
     ]
   })),
 
+  updateFurnitureName: (id, name) => set((state) => ({
+    furniture: state.furniture.map(f =>
+      f.id === id ? { ...f, name } : f
+    )
+  })),
+
   updateFurniturePosition: (id, newPosition) => set((state) => ({
     furniture: state.furniture.map(f => 
       f.id === id ? { ...f, position: newPosition } : f
@@ -97,7 +104,7 @@ export const useSpatialStore = create<SpatialState>((set, get) => ({
       if (f.id !== furnitureId) return f;
       return {
         ...f,
-        containers: f.containers.map(c => {
+        containers: f.containers.map((c: Container) => {
           if (c.id !== containerId) return c;
           return {
             ...c,
@@ -123,19 +130,20 @@ export const useSpatialStore = create<SpatialState>((set, get) => ({
     const { furniture, searchQuery } = get();
     if (!searchQuery.trim()) return [];
     
-    const results: Array<{ item: Item, containerName: string, furnitureName: string, furnitureId: string }> = [];
+    const results: Array<{ item: Item, containerName: string, containerId: string, furnitureName: string, furnitureId: string }> = [];
     const lowerQuery = searchQuery.toLowerCase();
 
     furniture.forEach(f => {
-      f.containers.forEach(c => {
-        c.items.forEach(i => {
+      f.containers.forEach((c: Container) => {
+        c.items.forEach((i: Item) => {
           if (
             i.name.toLowerCase().includes(lowerQuery) || 
-            i.tags.some(tag => tag.toLowerCase().includes(lowerQuery))
+            i.tags.some((tag: string) => tag.toLowerCase().includes(lowerQuery))
           ) {
             results.push({
               item: i,
               containerName: c.name,
+              containerId: c.id,
               furnitureName: f.name,
               furnitureId: f.id
             });

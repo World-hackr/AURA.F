@@ -87,7 +87,7 @@ export function ParametricCabinet({ id }: ParametricCabinetProps) {
       const y = -((event.clientY - rect.top) / rect.height) * 2 + 1
 
       const raycaster = new THREE.Raycaster()
-      raycaster.setFromCamera(new THREE.Vector2(x, y), camera)
+      raycaster.setFromCamera(new THREE.Vector2(x, y), camera as unknown as THREE.Camera)
       
       const target = new THREE.Vector3()
       raycaster.ray.intersectPlane(plane, target)
@@ -109,7 +109,7 @@ export function ParametricCabinet({ id }: ParametricCabinetProps) {
   const handleDrawerClick = (e: any, index: number) => {
     e.stopPropagation() 
     if (!isDragging) {
-      setOpenDrawerIndex(prev => prev === index ? null : index)
+      setOpenDrawerIndex((prev: number | null) => prev === index ? null : index)
     }
   }
 

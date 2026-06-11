@@ -11,14 +11,14 @@ interface LoadedShelfProps {
 
 export function LoadedShelf({ id }: LoadedShelfProps) {
   // Load the OBJ file from the public folder
-  const obj = useLoader(OBJLoader, '/models/shelf.obj')
+  const obj = useLoader(OBJLoader as any, '/models/shelf.obj') as THREE.Group
   
   // Clone it so we can have multiple shelves without them sharing exactly the same reference
   const clonedObj = useMemo(() => obj.clone(), [obj])
 
   // Apply a custom, clean, textureless material to all parts of the downloaded model
   useMemo(() => {
-    clonedObj.traverse((child) => {
+    clonedObj.traverse((child: THREE.Object3D) => {
       if (child instanceof THREE.Mesh) {
         // Flat dark material matching our aesthetic, stripping out any heavy textures
         child.material = new THREE.MeshStandardMaterial({
@@ -34,7 +34,7 @@ export function LoadedShelf({ id }: LoadedShelfProps) {
   const updatePosition = useSpatialStore(state => state.updateFurniturePosition)
   const setIsDraggingFurniture = useSpatialStore(state => state.setIsDraggingFurniture)
   
-  const [isDragging, setIsDragging] = useState(false)
+  const [, setIsDragging] = useState(false)
   const { camera, gl } = useThree()
 
   if (!furnitureData) return null
@@ -62,7 +62,7 @@ export function LoadedShelf({ id }: LoadedShelfProps) {
       const y = -((event.clientY - rect.top) / rect.height) * 2 + 1
 
       const raycaster = new THREE.Raycaster()
-      raycaster.setFromCamera(new THREE.Vector2(x, y), camera)
+      raycaster.setFromCamera(new THREE.Vector2(x, y), camera as unknown as THREE.Camera)
       
       const target = new THREE.Vector3()
       raycaster.ray.intersectPlane(plane, target)

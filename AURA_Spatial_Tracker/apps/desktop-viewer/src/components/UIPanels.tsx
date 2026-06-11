@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Search, Layers, Box, PackagePlus, Maximize, Rotate3D } from 'lucide-react';
+import { Search, Layers, Box, Maximize, Rotate3D, Plus } from 'lucide-react';
 import { useSpatialStore } from '@aura/state-store';
+import type { Container } from '@aura/state-store';
 
 export function LeftPanel() {
   const [tab, setTab] = useState<'SEARCH' | 'FURNITURE'>('SEARCH');
@@ -8,16 +9,12 @@ export function LeftPanel() {
   const setSearchQuery = useSpatialStore(state => state.setSearchQuery);
   const addFurniture = useSpatialStore(state => state.addFurniture);
   const focusFurniture = useSpatialStore(state => state.focusFurniture);
-  const furniture = useSpatialStore(state => state.furniture);
+  const selectContainer = useSpatialStore(state => state.selectContainer);
+  const searchResults = useSpatialStore(state => state.getSearchResults());
   
-  // Fake results for visual prototyping
-  const fakeResults = [
-    { id: '1', name: '10k Resistor', location: 'Main Rack > Drawer 2', targetId: furniture[0]?.id || '' },
-    { id: '2', name: 'Red LED 5mm', location: 'Component Shelf > Bin A', targetId: furniture[1]?.id || '' }
-  ].filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()));
-
-  const handleResultClick = (targetId: string) => {
-    focusFurniture(targetId);
+  const handleResultClick = (furnitureId: string, containerId: string) => {
+    focusFurniture(furnitureId);
+    selectContainer(containerId);
   }
 
   const spawnFurniture = (type: string) => {
@@ -50,14 +47,17 @@ export function LeftPanel() {
               </div>
             </div>
             <div className="item-list">
-              {fakeResults.map(res => (
-                <div key={res.id} className="list-item" onClick={() => handleResultClick(res.targetId)}>
-                  <p className="list-item-title">{res.name}</p>
-                  <p className="list-item-subtitle">{res.location}</p>
+              {searchResults.map(res => (
+                <div key={res.item.id} className="list-item" onClick={() => handleResultClick(res.furnitureId, res.containerId)}>
+                  <p className="list-item-title">{res.item.name}</p>
+                  <p className="list-item-subtitle">{res.furnitureName} &gt; {res.containerName} · Qty {res.item.quantity}</p>
                 </div>
               ))}
-              {searchQuery.length > 0 && fakeResults.length === 0 && (
+              {searchQuery.length > 0 && searchResults.length === 0 && (
                 <p style={{ color: '#888', fontStyle: 'italic' }}>No items found.</p>
+              )}
+              {searchQuery.length === 0 && (
+                <p style={{ color: '#666', fontSize: '0.8rem', lineHeight: 1.5 }}>Search item names or tags after adding containers and items in the inspector.</p>
               )}
             </div>
           </>
@@ -82,12 +82,21 @@ export function LeftPanel() {
 
 export function RightPanel() {
   const focusedFurnitureId = useSpatialStore(state => state.focusedFurnitureId);
+  const selectedContainerId = useSpatialStore(state => state.selectedContainerId);
   const furniture = useSpatialStore(state => state.furniture);
-  const focusFurniture = useSpatialStore(state => state.focusFurniture);
   const updateFurnitureDimensions = useSpatialStore(state => state.updateFurnitureDimensions);
+  const updateFurnitureName = useSpatialStore(state => state.updateFurnitureName);
+  const addContainer = useSpatialStore(state => state.addContainer);
+  const addItem = useSpatialStore(state => state.addItem);
+  const selectContainer = useSpatialStore(state => state.selectContainer);
+  const [containerName, setContainerName] = useState('');
+  const [containerType, setContainerType] = useState<Container['type']>('drawer');
+  const [itemName, setItemName] = useState('');
+  const [itemQuantity, setItemQuantity] = useState(1);
 
   // Find the exact object the user clicked on
   const selectedObj = furniture.find(f => f.id === focusedFurnitureId);
+  const selectedContainer = selectedObj?.containers.find(c => c.id === selectedContainerId) ?? null;
 
   if (!selectedObj) {
     return (
@@ -107,7 +116,12 @@ export function RightPanel() {
       <div className="panel-content">
         <div className="input-group">
           <label>Name</label>
-          <input type="text" className="text-input" defaultValue={selectedObj.name} />
+          <input
+            type="text"
+            className="text-input"
+            value={selectedObj.name}
+            onChange={(e) => updateFurnitureName(selectedObj.id, e.target.value)}
+          />
         </div>
 
         <div className="input-group">
@@ -154,18 +168,82 @@ export function RightPanel() {
             {selectedObj.containers.length === 0 ? (
                <p style={{ fontSize: '0.8rem', color: '#666' }}>No containers added yet.</p>
             ) : (
-              selectedObj.containers.map(c => (
-                <div key={c.id} className="list-item">
+              selectedObj.containers.map((c: Container) => (
+                <div
+                  key={c.id}
+                  className="list-item"
+                  onClick={() => selectContainer(c.id)}
+                  style={{ borderColor: c.id === selectedContainerId ? '#3b82f6' : undefined }}
+                >
                   <p className="list-item-title">{c.name}</p>
                   <p className="list-item-subtitle">{c.items.length} Items inside</p>
                 </div>
               ))
             )}
           </div>
-          <button className="action-btn" style={{ justifyContent: 'center', marginTop: '10px' }}>
-            + Add Container
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '8px', marginTop: '10px' }}>
+            <input
+              className="text-input"
+              value={containerName}
+              placeholder="Container name"
+              onChange={(e) => setContainerName(e.target.value)}
+            />
+            <select
+              className="text-input"
+              value={containerType}
+              onChange={(e) => setContainerType(e.target.value as Container['type'])}
+            >
+              <option value="drawer">Drawer</option>
+              <option value="bin">Bin</option>
+              <option value="box">Box</option>
+              <option value="pouch">Pouch</option>
+            </select>
+          </div>
+          <button
+            className="action-btn"
+            style={{ justifyContent: 'center', marginTop: '10px' }}
+            onClick={() => {
+              const name = containerName.trim();
+              if (!name) return;
+              addContainer(selectedObj.id, name, containerType);
+              setContainerName('');
+            }}
+          >
+            <Plus size={16} /> Add Container
           </button>
         </div>
+
+        {selectedContainer && (
+          <div className="input-group">
+            <label>Add item to {selectedContainer.name}</label>
+            <input
+              className="text-input"
+              value={itemName}
+              placeholder="Item name"
+              onChange={(e) => setItemName(e.target.value)}
+            />
+            <input
+              type="number"
+              min="1"
+              className="text-input"
+              value={itemQuantity}
+              onChange={(e) => setItemQuantity(Math.max(1, Number(e.target.value)))}
+            />
+            <button
+              className="action-btn"
+              style={{ justifyContent: 'center' }}
+              onClick={() => {
+                const name = itemName.trim();
+                if (!name) return;
+                addItem(selectedObj.id, selectedContainer.id, name, itemQuantity);
+                setItemName('');
+                setItemQuantity(1);
+              }}
+            >
+              <Plus size={16} /> Add Item
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

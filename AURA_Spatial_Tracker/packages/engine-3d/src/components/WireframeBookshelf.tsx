@@ -15,13 +15,13 @@ export function WireframeBookshelf({ id }: WireframeBookshelfProps) {
   const setIsDraggingFurniture = useSpatialStore(state => state.setIsDraggingFurniture)
   
   const [isDragging, setIsDragging] = useState(false)
-  const { size, camera } = useThree()
+  const { gl, camera } = useThree()
 
   if (!furnitureData) return null
 
   const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)
 
-  const bind = useDrag(({ active, movement: [mx, my], first, last, event }) => {
+  const bind = useDrag(({ active, first, last, event }) => {
     if (first) {
       setIsDragging(true)
       setIsDraggingFurniture(true) // Disable camera
@@ -32,12 +32,14 @@ export function WireframeBookshelf({ id }: WireframeBookshelfProps) {
     
     if (active && event) {
       // @ts-ignore
-      const x = (event.clientX / size.width) * 2 - 1
+      const rect = gl.domElement.getBoundingClientRect()
       // @ts-ignore
-      const y = -(event.clientY / size.height) * 2 + 1
+      const x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+      // @ts-ignore
+      const y = -((event.clientY - rect.top) / rect.height) * 2 + 1
 
       const raycaster = new THREE.Raycaster()
-      raycaster.setFromCamera(new THREE.Vector2(x, y), camera)
+      raycaster.setFromCamera(new THREE.Vector2(x, y), camera as unknown as THREE.Camera)
       
       const target = new THREE.Vector3()
       raycaster.ray.intersectPlane(plane, target)

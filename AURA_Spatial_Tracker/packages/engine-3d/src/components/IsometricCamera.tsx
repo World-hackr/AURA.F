@@ -1,25 +1,28 @@
 import { useRef, useEffect } from 'react'
-import { CameraControls, PerspectiveCamera, OrthographicCamera } from '@react-three/drei'
+import { OrbitControls, PerspectiveCamera, OrthographicCamera } from '@react-three/drei'
 import { useSpatialStore } from '@aura/state-store'
-import * as THREE from 'three'
 
 export function IsometricCamera() {
   const isDraggingFurniture = useSpatialStore(state => state.isDraggingFurniture)
-  const cameraView = useSpatialStore(state => state.cameraView)
   const cameraProjection = useSpatialStore(state => state.cameraProjection)
+  const cameraView = useSpatialStore(state => state.cameraView)
   
-  const controlsRef = useRef<CameraControls>(null)
+  const controlsRef = useRef<any>(null)
 
+  // A very simple, non-hijacking snap to Top/Front/Iso views.
+  // We do not animate this, we just snap the camera to avoid breaking math.
   useEffect(() => {
     if (!controlsRef.current) return
 
     if (cameraView === 'TOP') {
-      controlsRef.current.setLookAt(0, 60, 0, 0, 0, 0, true)
+      controlsRef.current.object.position.set(0, 60, 0)
     } else if (cameraView === 'FRONT') {
-      controlsRef.current.setLookAt(0, 8, 45, 0, 2, 0, true)
+      controlsRef.current.object.position.set(0, 5, 45)
     } else {
-      controlsRef.current.setLookAt(0, 25, 45, 0, 0, 0, true)
+      controlsRef.current.object.position.set(0, 25, 45)
     }
+    controlsRef.current.target.set(0, 0, 0)
+    controlsRef.current.update()
   }, [cameraView])
 
   return (
@@ -28,7 +31,7 @@ export function IsometricCamera() {
         <PerspectiveCamera 
           makeDefault 
           position={[0, 25, 45]} 
-          fov={35} /* CRITICAL: Narrow FOV (35 instead of 60) mimics Fusion 360 and prevents edge bending/fisheye distortion */
+          fov={35} 
           near={0.1}
           far={2000}
         />
@@ -42,26 +45,17 @@ export function IsometricCamera() {
         />
       )}
       
-      <CameraControls 
+      {/* 
+        Standard OrbitControls. 
+        Left-click orbits (rotates), Right-click pans (slides), Scroll zooms. 
+        No swooping, no custom math, no distortion. 
+      */}
+      <OrbitControls 
         ref={controlsRef}
         enabled={!isDraggingFurniture}
         minDistance={2}
         maxDistance={200}
-        infinityDolly={false} /* Must be false to prevent target pushing */
-        dollySpeed={25.0} /* Increased back to a fast, responsive speed for the trackpad */
-        dollyToCursor={false} /* CRITICAL FIX: Disabled. This prevents the pivot point from flying into infinity and breaking the perspective */
-        smoothTime={0.2}
-        mouseButtons={{
-          left: 2, 
-          right: 1, 
-          wheel: 8, 
-          middle: 0,
-        }}
-        touches={{
-          one: 1, 
-          two: 8, 
-          three: 2 
-        }}
+        makeDefault
       />
     </>
   )
