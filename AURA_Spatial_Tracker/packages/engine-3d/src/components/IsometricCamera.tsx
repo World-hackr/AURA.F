@@ -5,36 +5,22 @@ import * as THREE from 'three'
 
 export function IsometricCamera() {
   const isDraggingFurniture = useSpatialStore(state => state.isDraggingFurniture)
-  const focusedFurnitureId = useSpatialStore(state => state.focusedFurnitureId)
   const cameraView = useSpatialStore(state => state.cameraView)
   const cameraProjection = useSpatialStore(state => state.cameraProjection)
-  const furniture = useSpatialStore(state => state.furniture)
   
   const controlsRef = useRef<CameraControls>(null)
 
   useEffect(() => {
     if (!controlsRef.current) return
 
-    if (focusedFurnitureId) {
-      const targetFurniture = furniture.find(f => f.id === focusedFurnitureId)
-      if (targetFurniture) {
-        const [x, y, z] = targetFurniture.position
-        controlsRef.current.setLookAt(
-          x + 15, y + 15, z + 15, // Pulled back slightly more due to narrow FOV
-          x, y + 2, z,
-          true
-        )
-      }
+    if (cameraView === 'TOP') {
+      controlsRef.current.setLookAt(0, 60, 0, 0, 0, 0, true)
+    } else if (cameraView === 'FRONT') {
+      controlsRef.current.setLookAt(0, 8, 45, 0, 2, 0, true)
     } else {
-      if (cameraView === 'TOP') {
-        controlsRef.current.setLookAt(0, 60, 0, 0, 0, 0, true) // Higher up for Top view
-      } else if (cameraView === 'FRONT') {
-        controlsRef.current.setLookAt(0, 8, 45, 0, 2, 0, true) // Further back for Front view
-      } else {
-        controlsRef.current.setLookAt(0, 25, 45, 0, 0, 0, true) // Further back for ISO view
-      }
+      controlsRef.current.setLookAt(0, 25, 45, 0, 0, 0, true)
     }
-  }, [focusedFurnitureId, cameraView, furniture])
+  }, [cameraView])
 
   return (
     <>
@@ -59,11 +45,11 @@ export function IsometricCamera() {
       <CameraControls 
         ref={controlsRef}
         enabled={!isDraggingFurniture}
-        minDistance={0.1}
-        maxDistance={Infinity}
-        infinityDolly={true}
-        dollySpeed={150.0}
-        dollyToCursor={true}
+        minDistance={2}
+        maxDistance={200}
+        infinityDolly={false} /* Must be false to prevent target pushing */
+        dollySpeed={25.0} /* Increased back to a fast, responsive speed for the trackpad */
+        dollyToCursor={false} /* CRITICAL FIX: Disabled. This prevents the pivot point from flying into infinity and breaking the perspective */
         smoothTime={0.2}
         mouseButtons={{
           left: 2, 
