@@ -1,0 +1,217 @@
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #000000;
+  overflow: hidden;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #e0e0e0;
+}
+
+/* Base Layout */
+.app-layout {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+}
+
+.panel {
+  background-color: #121212;
+  height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.left-panel {
+  width: 20vw;
+  border-right: 1px solid #333333;
+}
+
+.center-panel {
+  width: 60vw;
+  position: relative;
+  background-color: #000000;
+  touch-action: none;
+}
+
+.right-panel {
+  width: 20vw;
+  border-left: 1px solid #333333;
+}
+
+/* Panel Headers and Tabs */
+.panel-tabs {
+  display: flex;
+  border-bottom: 1px solid #333333;
+}
+
+.tab-btn {
+  flex: 1;
+  background: none;
+  border: none;
+  color: #888888;
+  padding: 15px 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.tab-btn.active {
+  color: #ffffff;
+  border-bottom: 2px solid #ffffff;
+}
+
+.panel-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid #333333;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #ffffff;
+}
+
+/* Panel Content Areas */
+.panel-content {
+  padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Forms & Inputs */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-group label {
+  font-size: 0.75rem;
+  color: #888888;
+  text-transform: uppercase;
+}
+
+.text-input {
+  background-color: #000000;
+  border: 1px solid #333333;
+  color: #ffffff;
+  padding: 10px;
+  border-radius: 4px;
+  outline: none;
+  font-family: inherit;
+}
+.text-input:focus {
+  border-color: #555555;
+}
+
+.search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.search-container svg {
+  position: absolute;
+  left: 10px;
+  color: #888888;
+}
+.search-container input {
+  width: 100%;
+  padding-left: 35px;
+  box-sizing: border-box;
+}
+
+/* Lists */
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.list-item {
+  background-color: #1a1a1a;
+  border: 1px solid #222222;
+  padding: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.list-item:hover {
+  border-color: #555555;
+}
+.list-item-title {
+  margin: 0 0 5px 0;
+  font-size: 0.95rem;
+  color: #ffffff;
+}
+.list-item-subtitle {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #888888;
+}
+
+/* Catalog Grid */
+.catalog-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.catalog-card {
+  background-color: #1a1a1a;
+  border: 1px solid #333333;
+  padding: 20px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  border-radius: 4px;
+  cursor: grab;
+}
+.catalog-card:hover {
+  background-color: #222222;
+}
+.catalog-card span {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+/* Canvas Overlays */
+.canvas-overlay-top-left {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  color: #888888;
+  font-size: 0.8rem;
+  pointer-events: auto; /* CRITICAL FIX: Allow clicking the slider */
+}
+
+.canvas-overlay-bottom-right {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  gap: 10px;
+  pointer-events: auto; /* CRITICAL FIX: Allow clicking the buttons */
+}
+
+.action-btn {
+  background-color: #1a1a1a;
+  border: 1px solid #333333;
+  color: #ffffff;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+.action-btn:hover {
+  background-color: #333333;
+}

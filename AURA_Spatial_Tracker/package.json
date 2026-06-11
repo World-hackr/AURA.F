@@ -1,0 +1,8 @@
+{
+  "name": "aura-spatial-tracker-workspace",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter desktop-viewer dev",
+    "build": "pnpm --recursive run build"
+  }
+}
