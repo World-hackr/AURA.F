@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Search, Layers, Box, Maximize, Rotate3D, Plus } from 'lucide-react';
 import { useSpatialStore } from '@aura/state-store';
 import type { Container } from '@aura/state-store';
@@ -9,11 +9,32 @@ export function LeftPanel() {
   const setSearchQuery = useSpatialStore(state => state.setSearchQuery);
   const addFurniture = useSpatialStore(state => state.addFurniture);
   const focusFurniture = useSpatialStore(state => state.focusFurniture);
+  const setCameraTarget = useSpatialStore(state => state.setCameraTarget);
   const selectContainer = useSpatialStore(state => state.selectContainer);
-  const searchResults = useSpatialStore(state => state.getSearchResults());
+  const furniture = useSpatialStore(state => state.furniture);
+  const doubleClickDelay = useSpatialStore(state => state.doubleClickDelay);
+  const setDoubleClickDelay = useSpatialStore(state => state.setDoubleClickDelay);
+  
+  // Calculate search results safely without triggering infinite loop
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const results: any[] = [];
+    const lowerQuery = searchQuery.toLowerCase();
+    furniture.forEach(f => {
+      f.containers.forEach(c => {
+        c.items.forEach(i => {
+          if (i.name.toLowerCase().includes(lowerQuery) || i.tags.some(tag => tag.toLowerCase().includes(lowerQuery))) {
+            results.push({ item: i, containerName: c.name, furnitureName: f.name, furnitureId: f.id, containerId: c.id });
+          }
+        });
+      });
+    });
+    return results;
+  }, [furniture, searchQuery]);
   
   const handleResultClick = (furnitureId: string, containerId: string) => {
     focusFurniture(furnitureId);
+    setCameraTarget(furnitureId); // Swoop on search click
     selectContainer(containerId);
   }
 
@@ -64,17 +85,54 @@ export function LeftPanel() {
         )}
 
         {tab === 'FURNITURE' && (
-          <div className="catalog-grid">
-            <div className="catalog-card" onClick={() => spawnFurniture('parametric')}>
-              <Layers size={24} />
-              <span>Cabinet</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            <div>
+              <div style={{ fontSize: '0.7rem', color: '#888', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Architecture (Structural)</div>
+              <div className="catalog-grid">
+                <div className="catalog-card" onClick={() => spawnFurniture('wall-single')}>
+                  <Box size={24} />
+                  <span style={{ fontSize: '0.7rem', textAlign: 'center' }}>Single Brick Wall<br/>(4.5")</span>
+                </div>
+                <div className="catalog-card" onClick={() => spawnFurniture('wall-double')}>
+                  <Box size={24} />
+                  <span style={{ fontSize: '0.7rem', textAlign: 'center' }}>Double Brick Wall<br/>(9")</span>
+                </div>
+                <div className="catalog-card" onClick={() => spawnFurniture('i-beam')}>
+                  <Layers size={24} />
+                  <span style={{ fontSize: '0.7rem', textAlign: 'center' }}>Iron I-Beam<br/>(Girder)</span>
+                </div>
+              </div>
             </div>
-            <div className="catalog-card" onClick={() => spawnFurniture('shelf')}>
-              <Box size={24} />
-              <span>Metal Shelf</span>
+
+            <div>
+              <div style={{ fontSize: '0.7rem', color: '#888', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '1px' }}>Furniture & Storage</div>
+              <div className="catalog-grid">
+                <div className="catalog-card" onClick={() => spawnFurniture('parametric')}>
+                  <Layers size={24} />
+                  <span>Cabinet</span>
+                </div>
+                <div className="catalog-card" onClick={() => spawnFurniture('shelf')}>
+                  <Box size={24} />
+                  <span>Metal Shelf</span>
+                </div>
+              </div>
             </div>
           </div>
         )}
+
+        <div style={{ marginTop: 'auto', paddingTop: '15px', borderTop: '1px solid #333' }}>
+           <div className="input-group">
+             <label style={{ fontSize: '0.7rem', color: '#888', textTransform: 'uppercase' }}>Double-Tap Speed (ms)</label>
+             <input 
+                type="number" 
+                className="text-input" 
+                value={doubleClickDelay}
+                onChange={(e) => setDoubleClickDelay(Number(e.target.value))}
+                step={50}
+                min={50}
+             />
+           </div>
+        </div>
       </div>
     </div>
   );
@@ -255,7 +313,11 @@ export function CenterOverlays() {
   const setCameraProjection = useSpatialStore(state => state.setCameraProjection)
   const gridOpacity = useSpatialStore(state => state.gridOpacity)
   const setGridOpacity = useSpatialStore(state => state.setGridOpacity)
+  const abyssDarkness = useSpatialStore(state => state.abyssDarkness)
+  const setBackgroundDarkness = useSpatialStore(state => state.setBackgroundDarkness)
   const focusFurniture = useSpatialStore(state => state.focusFurniture)
+  const gizmoMode = useSpatialStore(state => state.gizmoMode)
+  const setGizmoMode = useSpatialStore(state => state.setGizmoMode)
 
   const toggleProjection = () => {
     setCameraProjection(cameraProjection === 'PERSPECTIVE' ? 'ORTHOGRAPHIC' : 'PERSPECTIVE')
@@ -269,9 +331,9 @@ export function CenterOverlays() {
   return (
     <>
       <div className="canvas-overlay-top-left" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <span>Room Bounds: 40 x 40 units</span>
+        <span style={{ fontWeight: 'bold', color: '#3b82f6', letterSpacing: '2px', textTransform: 'uppercase' }}>The Abyss</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(0,0,0,0.5)', padding: '5px 10px', borderRadius: '4px' }}>
-          <label style={{ fontSize: '0.75rem', textTransform: 'uppercase' }}>Grid</label>
+          <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', width: '40px' }}>Grid</label>
           <input 
             type="range" 
             min="0" 
@@ -282,8 +344,46 @@ export function CenterOverlays() {
             style={{ width: '80px', cursor: 'pointer' }}
           />
         </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'rgba(0,0,0,0.5)', padding: '5px 10px', borderRadius: '4px' }}>
+          <label style={{ fontSize: '0.75rem', textTransform: 'uppercase', width: '40px' }}>Dark</label>
+          <input 
+            type="range" 
+            min="0" 
+            max="1" 
+            step="0.05" 
+            value={abyssDarkness} 
+            onChange={(e) => setBackgroundDarkness(parseFloat(e.target.value))} 
+            style={{ width: '80px', cursor: 'pointer' }}
+          />
+        </div>
       </div>
       <div className="canvas-overlay-bottom-right" style={{ display: 'flex', gap: '8px' }}>
+        
+        {/* Gizmo Tools */}
+        <div style={{ display: 'flex', gap: '4px', marginRight: '20px', background: 'rgba(0,0,0,0.5)', padding: '4px', borderRadius: '4px' }}>
+          <button 
+            className="action-btn" 
+            onClick={() => setGizmoMode('translate')} 
+            style={{ backgroundColor: gizmoMode === 'translate' ? '#3b82f6' : 'transparent', color: gizmoMode === 'translate' ? 'white' : '#888' }}
+          >
+            Move
+          </button>
+          <button 
+            className="action-btn" 
+            onClick={() => setGizmoMode('rotate')} 
+            style={{ backgroundColor: gizmoMode === 'rotate' ? '#3b82f6' : 'transparent', color: gizmoMode === 'rotate' ? 'white' : '#888' }}
+          >
+            Rotate
+          </button>
+          <button 
+            className="action-btn" 
+            onClick={() => setGizmoMode('scale')} 
+            style={{ backgroundColor: gizmoMode === 'scale' ? '#3b82f6' : 'transparent', color: gizmoMode === 'scale' ? 'white' : '#888' }}
+          >
+            Resize
+          </button>
+        </div>
+
         <button className="action-btn" onClick={toggleProjection} style={{ marginRight: '20px', border: '1px solid #3b82f6', color: '#3b82f6' }}>
           <Rotate3D size={16} /> {cameraProjection === 'PERSPECTIVE' ? 'Persp' : 'Ortho'}
         </button>
