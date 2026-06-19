@@ -22,6 +22,70 @@ export interface Container {
   localPosition?: Vector3; 
 }
 
+export type AuraAssetPartMotion = 'static' | 'slide' | 'rotate';
+
+export interface AuraAssetMaterial {
+  id: string;
+  target: string;
+  color: string;
+  opacity: number;
+}
+
+export interface AuraAssetMeshNode {
+  id: string;
+  name: string;
+  type: 'mesh' | 'group';
+  parentName?: string;
+}
+
+export interface AuraAssetCollisionBox {
+  id: string;
+  name: string;
+  center: Vector3;
+  size: Vector3;
+}
+
+export interface AuraAssetSnapPoint {
+  id: string;
+  name: string;
+  position: Vector3;
+}
+
+export interface AuraAssetPart {
+  id: string;
+  name: string;
+  meshName?: string;
+  motion: AuraAssetPartMotion;
+  axis: Vector3;
+  closedOffset: number;
+  openOffset: number;
+  containerBounds?: {
+    center: Vector3;
+    size: Vector3;
+  };
+}
+
+export interface AuraAssetDefinition {
+  id: string;
+  displayName: string;
+  sourcePath?: string;
+  sourceStorageKey?: string;
+  sourceUnitScale?: number;
+  sourceModelOffset?: Vector3;
+  supportedFileType?: 'generated' | 'glb' | 'gltf' | 'obj' | 'stl' | 'fbx';
+  defaultDimensions: Vector3;
+  footprint: {
+    width: number;
+    depth: number;
+    offset: [number, number]; // [x, z]
+  };
+  collision: AuraAssetCollisionBox[];
+  snapPoints: AuraAssetSnapPoint[];
+  parts: AuraAssetPart[];
+  materials: AuraAssetMaterial[];
+  meshNodes?: AuraAssetMeshNode[];
+}
+
 export interface Furniture {
   id: string;
   name: string; // e.g., "Main Electronics Rack"

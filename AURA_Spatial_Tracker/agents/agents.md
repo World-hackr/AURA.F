@@ -19,10 +19,13 @@
 * **Update `architecture.md`:** When adding major modules, update `architecture.md` so Graphify can visualize the tree.
 
 ## Current Phase
-**Phase 1: The Core Prototype**
-- [ ] Setup Monorepo Workspace (pnpm)
-- [ ] Scaffold `packages/engine-3d` (Vite library)
-- [ ] Build Dark Neon Grid component
-- [ ] Build basic Draggable Box component with grid-snap
-- [ ] Build Fixed Isometric Camera
-- [ ] Scaffold `apps/desktop-viewer` (Vite app) to render the engine
+**Phase 2: Canvas Stability + Asset Calibrator Foundation**
+
+Read `agents/handoff-current-state.md` before making major changes. It records the current user intent, canvas decisions, snapping/geometry work, hologram palette rules, and the asset-import direction.
+
+Active priorities:
+- Keep room navigation smooth and deterministic on mobile.
+- Keep snapping/bounds driven by shared furniture geometry.
+- Build the asset pipeline around `model.glb + model.aura.json`.
+- Keep Asset Calibrator as a separate workspace from the Room workspace.
+- Use curated hologram palettes/swatches instead of arbitrary color picking.

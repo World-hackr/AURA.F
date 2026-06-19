@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react'
+import { useMemo } from 'react'
 import { useLoader } from '@react-three/fiber'
 import * as THREE from 'three'
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
@@ -11,19 +11,23 @@ interface LoadedShelfProps {
 
 export function LoadedShelf({ id }: LoadedShelfProps) {
   const obj = useLoader(OBJLoader as any, '/models/shelf.obj') as THREE.Group
+  const material = useSpatialStore(state => state.assetDefinitions.shelf?.materials[0])
   const clonedObj = useMemo(() => obj.clone(), [obj])
 
   useMemo(() => {
     clonedObj.traverse((child: THREE.Object3D) => {
       if (child instanceof THREE.Mesh) {
         child.material = new THREE.MeshStandardMaterial({
-          color: '#1e293b', 
+          color: material?.color ?? '#1e293b',
+          opacity: material?.opacity ?? 1,
+          transparent: (material?.opacity ?? 1) < 1,
+          depthWrite: (material?.opacity ?? 1) >= 1,
           roughness: 0.8,
           metalness: 0.2
         })
       }
     })
-  }, [clonedObj])
+  }, [clonedObj, material?.color, material?.opacity])
 
   const furnitureData = useSpatialStore(state => state.furniture.find(f => f.id === id))
   const focusFurniture = useSpatialStore(state => state.focusFurniture)
@@ -42,6 +46,7 @@ export function LoadedShelf({ id }: LoadedShelfProps) {
   return (
     <group 
       position={furnitureData.position} 
+      rotation={[0, furnitureData.rotation || 0, 0]}
       name={`furniture-${id}`}
     >
       <primitive 

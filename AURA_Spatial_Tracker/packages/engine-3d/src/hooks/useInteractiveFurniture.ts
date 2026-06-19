@@ -25,7 +25,7 @@ export function useInteractiveFurniture({ id, onSingleClick, onDoubleClick }: In
   
   // Manual click tracking to beat browser race conditions
   const clickCount = useRef(0)
-  const clickTimer = useRef<NodeJS.Timeout | null>(null)
+  const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   
   // Ref to the group to update visually without waiting for React state
   const groupRef = useRef<THREE.Group>(null!)

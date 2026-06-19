@@ -14,7 +14,7 @@ export function useDebouncedInteraction({
   onDoubleClick?: (e: any) => void
   delay?: number
 }) {
-  const timer = useRef<NodeJS.Timeout | null>(null)
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   
   // We use this flag to ensure we don't accidentally fire a single click if the user is dragging.
   // We set it to true on pointer down, and false on pointer up.

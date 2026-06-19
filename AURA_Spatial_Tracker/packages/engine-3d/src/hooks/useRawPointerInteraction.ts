@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { ThreeEvent } from '@react-three/fiber'
+import type { ThreeEvent } from '@react-three/fiber'
 
 interface RawPointerProps {
   onSingleClick?: (e: ThreeEvent<PointerEvent>) => void
@@ -21,7 +21,7 @@ export function useRawPointerInteraction({
   
   const pointerDownState = useRef({ x: 0, y: 0, time: 0 })
   const lastPointerUpTime = useRef(0)
-  const singleClickTimer = useRef<NodeJS.Timeout | null>(null)
+  const singleClickTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const onPointerDown = (e: ThreeEvent<PointerEvent>) => {
     if (e.button !== 0) return 
