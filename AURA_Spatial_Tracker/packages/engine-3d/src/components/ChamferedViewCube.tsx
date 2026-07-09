@@ -269,8 +269,10 @@ export function GimbalViewCube() {
         <sphereGeometry args={[1.0, 32, 32]} />
         <meshStandardMaterial
           transparent
-          opacity={0.32}
-          color="#4b5563"
+          opacity={0.22}
+          color="#94a3b8"
+          emissive="#e2e8f0"
+          emissiveIntensity={0.3}
           roughness={0.1}
           metalness={0.9}
           depthWrite={false}
