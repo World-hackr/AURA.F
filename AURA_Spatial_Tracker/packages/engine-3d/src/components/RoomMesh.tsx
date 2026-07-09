@@ -11,7 +11,7 @@ export function RoomMesh() {
       {/* 
         The Room Enclosure.
       */}
-      <mesh receiveShadow>
+      <mesh receiveShadow renderOrder={-5}>
         <boxGeometry args={[w, h, d]} />
         <meshStandardMaterial 
           color="#475569" /* Darker slate to make white edges pop */

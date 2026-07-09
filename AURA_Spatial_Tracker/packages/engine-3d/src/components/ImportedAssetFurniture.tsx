@@ -151,15 +151,24 @@ function ImportedStlModel({ asset, modelUrl }: { asset: AuraAssetDefinition, mod
   )
 }
 
-function ImportedModel({
+export function ImportedModel({
   asset,
   modelUrl,
+  dimensions,
 }: {
   asset: AuraAssetDefinition
   modelUrl: string
+  dimensions: [number, number, number]
 }) {
   const unitScale = asset.sourceUnitScale ?? 1
   const offset = asset.sourceModelOffset ?? ([0, 0, 0] as [number, number, number])
+
+  // Scale the model dynamically if instance dimensions differ from calibrated default dimensions
+  const [w_inst, h_inst, d_inst] = dimensions
+  const [w_def, h_def, d_def] = asset.defaultDimensions
+  const scaleX = (w_def > 0 ? w_inst / w_def : 1) * unitScale
+  const scaleY = (h_def > 0 ? h_inst / h_def : 1) * unitScale
+  const scaleZ = (d_def > 0 ? d_inst / d_def : 1) * unitScale
 
   const model =
     asset.supportedFileType === 'fbx' ? (
@@ -173,7 +182,7 @@ function ImportedModel({
     )
 
   return (
-    <group position={offset} scale={[unitScale, unitScale, unitScale]}>
+    <group position={offset} scale={[scaleX, scaleY, scaleZ]}>
       {model}
     </group>
   )
@@ -239,7 +248,7 @@ export function ImportedAssetFurniture({ id }: ImportedAssetFurnitureProps) {
       onPointerUp={onPointerUp}
     >
       {modelUrl ? (
-        <ImportedModel asset={asset} modelUrl={modelUrl} />
+        <ImportedModel asset={asset} modelUrl={modelUrl} dimensions={[width, height, depth]} />
       ) : (
         <mesh position={[0, height / 2, 0]}>
           <boxGeometry args={[width, height, depth]} />

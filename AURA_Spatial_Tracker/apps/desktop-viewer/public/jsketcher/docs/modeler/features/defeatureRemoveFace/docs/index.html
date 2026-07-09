@@ -1,0 +1,117 @@
+<html>
+<head>
+  <title>Web CAD Documentation</title>
+  <link rel="shortcut icon" href="img/cad/cube96.png"/>
+
+  <style>
+    html {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      font-size: 14px;
+      font-family: 'DejaVu Serif', Georgia, "Times New Roman", Times, serif;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      margin: 0;
+      background: #e9eaeb;
+    }
+
+    .header {
+      border-bottom: 1px solid #000;
+      padding: 10px
+    }
+
+    .left {
+      padding: 10px;
+      border-right: 1px solid #000;
+    }
+
+    .content {
+      padding: 10px;
+      max-width: 600px;
+    }
+
+    .center {
+      display: flex;
+      flex-grow: 1;
+    }
+
+    .block-link {
+      display: block;
+    }
+
+    .children {
+      padding-left: 10px;
+    }
+
+    a, a:visited {
+      color: #005ea4;
+      text-decoration: none;
+    }
+    a:hover {
+      color: blue;
+      text-decoration: underline;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="header">
+  JSketcher Documentation
+</div>
+<div class="center">
+
+  <div class="left">
+      <div><b>modeler</b></div>
+      <div class="children">
+          <a class="block-link" href="../../../../../../docs/modeler/features/boolean/docs/index.html">boolean</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/defeatureRemoveFace/docs/index.html">defeatureRemoveFace</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/deleteBody/docs/index.html">deleteBody</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/extrude/docs/index.html">extrude</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/fillet/docs/index.html">fillet</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/hole/docs/index.html">hole</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/importModel/docs/index.html">importModel</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/loft/docs/index.html">loft</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/mirrorBody/docs/index.html">mirrorBody</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/moveBody/docs/index.html">moveBody</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/patternLinear/docs/index.html">patternLinear</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/patternRadial/docs/index.html">patternRadial</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/plane/docs/index.html">plane</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/primitiveBox/docs/index.html">primitiveBox</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/primitiveCone/docs/index.html">primitiveCone</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/primitiveCylinder/docs/index.html">primitiveCylinder</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/primitiveSphere/docs/index.html">primitiveSphere</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/primitiveTorus/docs/index.html">primitiveTorus</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/revolve/docs/index.html">revolve</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/scaleBody/docs/index.html">scaleBody</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/shell/docs/index.html">shell</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/sweep/docs/index.html">sweep</a>
+          <a class="block-link" href="../../../../../../docs/modeler/features/wireLine/docs/index.html">wireLine</a>
+      </div>
+      <div><b>routingElectrical</b></div>
+      <div class="children">
+          <a class="block-link" href="../../../../../../docs/routingElectrical/features/autoRoute/docs/index.html">autoRoute</a>
+      </div>
+      <div><b>sheetMetal</b></div>
+      <div class="children">
+          <a class="block-link" href="../../../../../../docs/sheetMetal/features/smFlange/docs/index.html">smFlange</a>
+          <a class="block-link" href="../../../../../../docs/sheetMetal/features/smTab/docs/index.html">smTab</a>
+      </div>
+  </div>
+  <div class="content">
+    <h1 id="delete-face">DELETE FACE</h1>
+<p>The delete face tool is used to defeature a model. </p>
+<p>Select the faces you wish to remove. For example a particular fillet or the bottom and side faces of a hole.</p>
+<p>The tool will attempt to extend adjacent faces to fill the hole. </p>
+<p>Useful for working with geometry that has been imported or being prepared for developing a casting where the features will be added at a later stage of the manufacturing process. </p>
+
+  </div>
+
+</div>
+
+</body>
+</html>

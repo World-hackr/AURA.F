@@ -101,3 +101,92 @@ export interface Room {
   name: string;
   furniture: Furniture[];
 }
+
+export interface SketchPoint {
+  id: string;
+  x: number;
+  z: number;
+  elevation?: number;
+  createdAt?: number;
+}
+
+export interface SketchLine {
+  id: string;
+  startPointId: string;
+  endPointId: string;
+  thickness: number; // in feet (e.g. 0.375 for 4.5", 0.75 for 9")
+  height: number;    // height in feet
+  elevation?: number;
+  createdAt?: number;
+}
+
+export interface SketchCircle {
+  id: string;
+  centerX: number;
+  centerZ: number;
+  radius: number;
+  thickness: number;
+  height: number;
+  elevation?: number;
+  createdAt?: number;
+}
+
+export interface SketchLabel {
+  id: string;
+  x: number;
+  z: number;
+  text: string;
+  elevation?: number;
+  createdAt?: number;
+}
+
+export interface SketchFeatureMeta {
+  id: string;
+  customName: string | null;
+  suppressed: boolean;
+}
+
+export interface SketchProject {
+  id: string;
+  name: string;
+  points: SketchPoint[];
+  lines: SketchLine[];
+  circles: SketchCircle[];
+  labels: SketchLabel[];
+  thickness: number;
+  wallHeight: number;
+  width: number;
+  depth: number;
+  centerX: number;
+  centerZ: number;
+  featureMeta?: Record<string, SketchFeatureMeta>;
+  operations?: SketchOperation[];
+}
+
+export interface SketchOperation {
+  id: string;
+  toolType: 'LINE' | 'RECTANGLE' | 'CIRCLE' | 'POINT' | 'ADD_LABEL' | 'TRIANGLE' | 'EXTRUDE' | 'FILLET';
+  name: string;
+  entityIds: string[];
+  createdAt: number;
+  params?: {
+    height?: number;
+    thickness?: number;
+    type?: 'solid' | 'thin';
+    outputType?: 'component' | 'room';
+    bodies?: Array<{
+      id: string;
+      name: string;
+      type: 'solid-box' | 'solid-cylinder';
+      position: Vector3;
+      rotation: number;
+      dimensions: Vector3;
+    }>;
+  };
+}
+
+
+
+
+
+

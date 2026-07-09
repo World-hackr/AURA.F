@@ -1,4 +1,4 @@
-import { Suspense, useEffect, useState, useRef } from 'react'
+import { Suspense, useEffect, useState, useRef, useMemo } from 'react'
 import { useThree } from '@react-three/fiber'
 import { TransformControls } from '@react-three/drei'
 import * as THREE from 'three'
@@ -6,13 +6,18 @@ import { useSpatialStore } from '@aura/state-store'
 import { LoadedShelf } from './components/LoadedShelf'
 import { ParametricCabinet } from './components/ParametricCabinet'
 import { HologramWall } from './components/HologramWall'
+import { HologramCurvedWall } from './components/HologramCurvedWall'
+import { SolidBox } from './components/SolidBox'
+import { SolidCylinder } from './components/SolidCylinder'
 import { IBeam } from './components/IBeam'
 import { LowPolyFurniture } from './components/LowPolyFurniture'
 import { ImportedAssetFurniture } from './components/ImportedAssetFurniture'
 import { AlignmentGuides } from './components/AlignmentGuides'
 import { SnapFootprints } from './components/SnapFootprints'
+import { SketchOverlay3D } from './components/SketchOverlay3D'
+import { ProceduralProjectComponent } from './components/ProceduralProjectComponent'
 import { getFurnitureFootprint, type FurnitureFootprint } from './furnitureGeometry'
-import type { AlignmentGuideData } from '@aura/state-store'
+import type { AlignmentGuideData, Furniture, SpatialState, SketchOperation } from '@aura/state-store'
 
 type TransformControlEvent = {
   target?: {
@@ -32,7 +37,6 @@ function GlobalGizmo() {
   const updateFurnitureDimensions = useSpatialStore(state => state.updateFurnitureDimensions)
   const updateFurnitureRotation = useSpatialStore(state => state.updateFurnitureRotation)
   const setIsDraggingFurniture = useSpatialStore(state => state.setIsDraggingFurniture)
-  const setCameraTarget = useSpatialStore(state => state.setCameraTarget)
   const setActiveAlignments = useSpatialStore(state => state.setActiveAlignments)
   const setDraggingPosition = useSpatialStore(state => state.setDraggingPosition)
   const gizmoMode = useSpatialStore(state => state.gizmoMode)
@@ -97,16 +101,21 @@ function GlobalGizmo() {
       showX={gizmoMode !== 'rotate'} 
       showZ={gizmoMode !== 'rotate'}
       showY={gizmoMode === 'scale' || gizmoMode === 'rotate'} 
+      onPointerDown={(e) => {
+        e.stopPropagation()
+      }}
+      onPointerUp={(e) => {
+        e.stopPropagation()
+      }}
       onMouseDown={() => {
         setIsDraggingFurniture(true)
-        setCameraTarget(null) 
         if (showSnapFootprints) {
           setDraggingPosition([targetObject.position.x, targetObject.position.y, targetObject.position.z])
         }
 
         // STEP 2: PRE-CALCULATION (One-time scan when drag starts)
         if (isSnappingEnabled && gizmoMode === 'translate') {
-          const activeObj = furnitureList.find(f => f.id === focusedFurnitureId)
+          const activeObj = furnitureList.find((f: Furniture) => f.id === focusedFurnitureId)
           if (activeObj) {
             activeFootprintRef.current = getFurnitureFootprint(activeObj)
             const [ax, , az] = activeObj.position
@@ -115,7 +124,7 @@ function GlobalGizmo() {
             const targetXs: AxisSnapTarget[] = []
             const targetZs: AxisSnapTarget[] = []
 
-            furnitureList.forEach(other => {
+            furnitureList.forEach((other: Furniture) => {
               if (other.id === focusedFurnitureId) return
 
               const [ox, , oz] = other.position
@@ -169,6 +178,8 @@ function GlobalGizmo() {
             else if (snapX.activeEdge === 'min') obj.position.x = snapX.targetValue + activeFootprint.halfX - activeFootprint.offsetX
             else obj.position.x = snapX.targetValue - activeFootprint.halfX - activeFootprint.offsetX
             activeGuides.push({ axis: 'X', position: snapX.guidePosition })
+          } else {
+            obj.position.x = Math.round(obj.position.x / 0.25) * 0.25
           }
 
           const snapZ = findSnapTarget(snapCacheRef.current.z, edgesZ, SNAP_THRESHOLD)
@@ -177,6 +188,8 @@ function GlobalGizmo() {
             else if (snapZ.activeEdge === 'min') obj.position.z = snapZ.targetValue + activeFootprint.halfZ - activeFootprint.offsetZ
             else obj.position.z = snapZ.targetValue - activeFootprint.halfZ - activeFootprint.offsetZ
             activeGuides.push({ axis: 'Z', position: snapZ.guidePosition })
+          } else {
+            obj.position.z = Math.round(obj.position.z / 0.25) * 0.25
           }
 
           setActiveAlignments(activeGuides)
@@ -199,7 +212,7 @@ function GlobalGizmo() {
           } else if (gizmoMode === 'rotate') {
             updateFurnitureRotation(focusedFurnitureId, obj.rotation.y)
           } else if (gizmoMode === 'scale') {
-            const fData = furnitureList.find(f => f.id === focusedFurnitureId)
+            const fData = furnitureList.find((f: Furniture) => f.id === focusedFurnitureId)
             if (fData) {
               const currentDims = fData.dimensions
               const newW = Math.max(0.1, Math.round(currentDims[0] * obj.scale.x * 10) / 10)
@@ -217,30 +230,131 @@ function GlobalGizmo() {
 }
 
 export function SceneManager() {
-  const furnitureList = useSpatialStore(state => state.furniture)
-  const assetDefinitions = useSpatialStore(state => state.assetDefinitions)
+  const furnitureList = useSpatialStore((state: SpatialState) => state.furniture)
+  const assetDefinitions = useSpatialStore((state: SpatialState) => state.assetDefinitions)
+  const isSketchMode = useSpatialStore((state: SpatialState) => state.isSketchMode)
+  const sketchIsolatedMode = useSpatialStore((state: SpatialState) => state.sketchIsolatedMode)
+  const sketchReferenceMode = useSpatialStore((state: SpatialState) => state.sketchReferenceMode)
+  const activeProjectId = useSpatialStore((state: SpatialState) => state.activeProjectId)
+  const cadWorkspaceMode = useSpatialStore((state: SpatialState) => state.cadWorkspaceMode)
+
+  const sketchOperations = useSpatialStore((state: SpatialState) => state.sketchOperations) || []
+  const sketchTimelineIndex = useSpatialStore((state: SpatialState) => state.sketchTimelineIndex)
+  const sketchFeatureMeta = useSpatialStore((state: SpatialState) => state.sketchFeatureMeta) || {}
+
+  const { list: visibleFurnitureList, activeExtrudedIds } = useMemo(() => {
+    if (!isSketchMode) return { list: furnitureList, activeExtrudedIds: new Set<string>() };
+
+    const sortedOps = [...sketchOperations].sort((a, b) => a.createdAt - b.createdAt);
+    const activeOps = sketchTimelineIndex === null || sketchTimelineIndex >= sortedOps.length
+      ? sortedOps
+      : sortedOps.slice(0, sketchTimelineIndex);
+
+    const allSketchFurnitureIds = new Set<string>();
+    sketchOperations.forEach((op: SketchOperation) => {
+      if (op.toolType === 'EXTRUDE') {
+        op.entityIds.forEach((id: string) => allSketchFurnitureIds.add(id));
+      }
+    });
+
+    const activeFurnitureIds = new Set<string>();
+    activeOps.forEach((op: SketchOperation) => {
+      if (op.toolType === 'EXTRUDE' && sketchFeatureMeta[op.id]?.suppressed !== true) {
+        op.entityIds.forEach((id: string) => activeFurnitureIds.add(id));
+      }
+    });
+
+    const list = furnitureList.filter((f: Furniture) => {
+      if (allSketchFurnitureIds.has(f.id)) {
+        return activeFurnitureIds.has(f.id);
+      }
+      return true;
+    });
+
+    return { list, activeExtrudedIds: activeFurnitureIds };
+  }, [furnitureList, sketchOperations, sketchTimelineIndex, sketchFeatureMeta, isSketchMode]);
+
+  const renderFurniture = (furniture: Furniture, isReference = false) => {
+    // Skip rendering the active project itself in CAD editor view when in 2D mode to avoid double rendering with the sketch overlay
+    if (isSketchMode && cadWorkspaceMode === '2D' && furniture.modelId === `project-${activeProjectId}`) {
+      return null
+    }
+
+    if (furniture.modelId.startsWith('project-')) {
+      return <ProceduralProjectComponent key={furniture.id} id={furniture.id} isReference={isReference} />
+    }
+
+    if (furniture.modelId === 'shelf') {
+      return <LoadedShelf key={furniture.id} id={furniture.id} />
+    } else if (furniture.modelId === 'wall-single' || furniture.modelId === 'wall-double') {
+      return <HologramWall key={furniture.id} id={furniture.id} isReference={isReference} />
+    } else if (furniture.modelId === 'wall-curved') {
+      return <HologramCurvedWall key={furniture.id} id={furniture.id} isReference={isReference} />
+    } else if (furniture.modelId === 'solid-box') {
+      return <SolidBox key={furniture.id} id={furniture.id} isReference={isReference} />
+    } else if (furniture.modelId === 'solid-cylinder') {
+      return <SolidCylinder key={furniture.id} id={furniture.id} isReference={isReference} />
+    } else if (furniture.modelId === 'ibeam') {
+      return <IBeam key={furniture.id} id={furniture.id} />
+    } else if (furniture.modelId === 'parametric') {
+      return <ParametricCabinet key={furniture.id} id={furniture.id} />
+    } else if (assetDefinitions[furniture.modelId]?.sourceStorageKey) {
+      return <ImportedAssetFurniture key={furniture.id} id={furniture.id} />
+    } else {
+      return <LowPolyFurniture key={furniture.id} id={furniture.id} />
+    }
+  }
 
   return (
     <>
-      <GlobalGizmo />
-      <AlignmentGuides />
-      <SnapFootprints />
+      {!isSketchMode && <GlobalGizmo />}
+      {!isSketchMode && <AlignmentGuides />}
+      {!isSketchMode && <SnapFootprints />}
+      <SketchOverlay3D />
       <Suspense fallback={null}>
-        {furnitureList.map(furniture => {
-          if (furniture.modelId === 'shelf') {
-            return <LoadedShelf key={furniture.id} id={furniture.id} />
-          } else if (furniture.modelId === 'wall-single' || furniture.modelId === 'wall-double') {
-            return <HologramWall key={furniture.id} id={furniture.id} />
-          } else if (furniture.modelId === 'i-beam') {
-            return <IBeam key={furniture.id} id={furniture.id} />
-          } else if (furniture.modelId === 'parametric') {
-            return <ParametricCabinet key={furniture.id} id={furniture.id} />
-          } else if (assetDefinitions[furniture.modelId]?.sourceStorageKey) {
-            return <ImportedAssetFurniture key={furniture.id} id={furniture.id} />
-          } else {
-            return <LowPolyFurniture key={furniture.id} id={furniture.id} />
-          }
-        })}
+        {isSketchMode ? (
+          <group raycast={isSketchMode && cadWorkspaceMode === '2D' ? () => null : undefined}>
+            {/* Render other furniture/projects as reference */}
+            {sketchReferenceMode && visibleFurnitureList.map((furniture: Furniture) => {
+              const isActiveProj = furniture.modelId === `project-${activeProjectId}`;
+              const isExtrudedBody = activeExtrudedIds.has(furniture.id);
+              if (isActiveProj || isExtrudedBody) return null;
+
+              if (sketchIsolatedMode) {
+                const isWall = furniture.modelId === 'wall-single' || furniture.modelId === 'wall-double' || furniture.modelId === 'wall-curved' || furniture.modelId === 'solid-box' || furniture.modelId === 'solid-cylinder'
+                if (!isWall) return null
+              }
+              return renderFurniture(furniture, true)
+            })}
+
+            {/* Render the active project and its extruded solid bodies fully opaque and interactive when in 3D CAD mode */}
+            {cadWorkspaceMode === '3D' && (() => {
+              const isPlaced = visibleFurnitureList.some((furniture: Furniture) => furniture.modelId === `project-${activeProjectId}`);
+              const activeProjectEl = !isPlaced && activeProjectId ? (
+                <ProceduralProjectComponent key={`unplaced-project-${activeProjectId}`} id={activeProjectId} isReference={false} />
+              ) : null;
+
+              const placedAndExtrudedEls = visibleFurnitureList.map((furniture: Furniture) => {
+                const isActiveProj = furniture.modelId === `project-${activeProjectId}`;
+                const isExtrudedBody = activeExtrudedIds.has(furniture.id);
+
+                if (isActiveProj || isExtrudedBody) {
+                  return renderFurniture(furniture, false)
+                }
+                return null;
+              });
+
+              return (
+                <>
+                  {activeProjectEl}
+                  {placedAndExtrudedEls}
+                </>
+              );
+            })()}
+          </group>
+        ) : (
+          visibleFurnitureList.map((furniture: Furniture) => renderFurniture(furniture, false))
+        )}
       </Suspense>
     </>
   )

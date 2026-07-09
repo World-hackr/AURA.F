@@ -9,7 +9,9 @@
     "@use-gesture/react": "^10.3.1",
     "camera-controls": "^3.1.2",
     "lucide-react": "^1.17.0",
-    "three": "^0.184.0"
+    "three": "^0.184.0",
+    "three-bvh-csg": "^0.0.18",
+    "three-mesh-bvh": "^0.9.10"
   },
   "devDependencies": {
     "@types/react": "^19.2.14",

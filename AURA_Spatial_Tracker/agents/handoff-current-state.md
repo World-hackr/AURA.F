@@ -41,6 +41,23 @@ Important files:
 - `packages/engine-3d/src/components/IsometricCamera.tsx`
 - `apps/desktop-viewer/src/App.tsx`
 
+## CAD Sketch Timeline Work Completed
+
+We have built a Fusion 360-style bottom-docked timeline for the CAD Sketch mode to track and control drawing history.
+
+Features:
+- **Bottom-docked design**: Spans the entire width of the canvas drawing viewport (`bottom: 0, left: 0, right: 0`, height `42px`), presenting a cohesive engineering workspace.
+- **Drag-to-scrub rollback handle**: Handles drag interactions on the yellow rollback handle, snapping to positions between operation cards and filtering out elements drawn after the rollback boundary.
+- **Animation controls**: Play/Pause, step, and fast-forward controls for animating drawing construction.
+- **Color-coded feature cards**: Clear icons indicating item type (`Plus` for Vertex, `Slash` for Line Wall, `Circle` for Circle Wall, `Edit3` for Label) with dedicated accents.
+- **Context menus & tooltips**: Right-click to Delete or Select features directly from the timeline, and hover to see coordinates, lengths, and dimensions in a glassmorphic tooltip.
+
+Important files:
+- `apps/desktop-viewer/src/components/UIPanels.tsx` (contains `CADTimeline`)
+- `apps/desktop-viewer/src/App.tsx` (mounts timeline inside CAD viewport)
+- `packages/engine-3d/src/components/SketchOverlay3D.tsx` (filters elements reactively)
+- `packages/state-store/src/store.ts` (manages `sketchTimelineIndex` and rollback triggers)
+
 ## Snapping And Geometry Work Completed
 
 Furniture snapping now uses shared footprint logic instead of scattered assumptions.
