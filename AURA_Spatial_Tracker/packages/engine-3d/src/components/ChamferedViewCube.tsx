@@ -266,7 +266,7 @@ export function GimbalViewCube() {
 
       {/* Main Transparent Outer Sphere (Greyish glass bubble) */}
       <mesh>
-        <sphereGeometry args={[0.85, 32, 32]} />
+        <sphereGeometry args={[1.0, 32, 32]} />
         <meshStandardMaterial
           transparent
           opacity={0.32}
