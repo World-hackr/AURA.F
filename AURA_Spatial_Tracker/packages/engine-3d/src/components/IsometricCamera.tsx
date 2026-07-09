@@ -376,8 +376,8 @@ export function IsometricCamera() {
     } else {
       // ISO (or home view if targetId is null)
       controlsRef.current.setLookAt(
-        tx + 15,
-        cy + 10,
+        tx + 12,
+        cy + 12,
         tz + 15,
         tx,
         cy,
@@ -498,7 +498,7 @@ export function IsometricCamera() {
       <PerspectiveCamera 
           ref={perspectiveRef}
           makeDefault={cameraProjection === 'PERSPECTIVE'}
-          position={[0, 15, 15]} 
+          position={[12, 12, 15]} 
           fov={35} 
           near={0.1}
           far={50000} 
@@ -506,7 +506,7 @@ export function IsometricCamera() {
       <OrthographicCamera 
           ref={orthographicRef}
           makeDefault={cameraProjection === 'ORTHOGRAPHIC'}
-          position={[0, 15, 15]} 
+          position={[12, 12, 15]} 
           zoom={20} 
           near={-50000}
           far={50000} 
