@@ -152,14 +152,13 @@ function RoomCanvas() {
         }}
       >
         <color attach="background" args={['#000000']} />
-        <fog attach="fog" args={['#000000', 30, 200]} />
         <AdaptiveDpr pixelated />
         
         {/* Dynamic viewport-based perspective/orthographic camera system */}
         <IsometricCamera />
 
         {/* Optimized technical infinite snapping grid */}
-        <InfiniteGridHelper gridStep={1.0} />
+        <InfiniteGridHelper />
 
         {/* Lightweight visual/raycast floor for depth reference and spawning */}
         <PlacementSurface floorColor={floorColor} />
