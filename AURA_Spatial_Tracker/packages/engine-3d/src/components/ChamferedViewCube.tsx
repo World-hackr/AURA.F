@@ -150,7 +150,7 @@ export function ChamferedViewCube() {
   }
 
   return (
-    <group scale={[65, 65, 65]}>
+    <group scale={[65, 65, 65]} rotation={[-Math.PI / 2, 0, 0]}>
       {/* Localized lighting specifically for this ViewCube's portal */}
       <ambientLight intensity={0.9} />
       <directionalLight position={[3, 5, 3]} intensity={3.5} />
@@ -189,8 +189,9 @@ export function ChamferedViewCube() {
               }}
               onClick={e => {
                 e.stopPropagation()
-                // Normalized camera view vector
+                // Rotate model direction vector into world coordinate space
                 const viewDirection = mesh.normalizedCenter.clone().normalize()
+                viewDirection.applyEuler(new THREE.Euler(-Math.PI / 2, 0, 0))
                 tweenCamera(viewDirection.multiplyScalar(5))
               }}
             >
