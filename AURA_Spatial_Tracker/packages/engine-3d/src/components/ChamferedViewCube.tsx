@@ -150,27 +150,27 @@ export function ChamferedViewCube() {
   }
 
   return (
-    <group scale={[65, 65, 65]}>
+    <group scale={[65, 65, 65]} rotation={[Math.PI / 2, 0, 0]}>
       {/* Localized lighting specifically for this ViewCube's portal */}
       <ambientLight intensity={0.9} />
       <directionalLight position={[3, 5, 3]} intensity={3.5} />
       
       {/* Inner glowing point light source that leaks through crevices */}
       <pointLight position={[0, 0, 0]} intensity={4.5} color="#22d3ee" distance={1.8} decay={1.2} />
-
+ 
       {/* CAD Axis Arrows protruding from the corner */}
       <axesHelper position={[-0.6, -0.6, -0.6]} args={[1.5]} />
-
+ 
       {meshes.map(mesh => {
         const isHovered = hoveredName === mesh.name
         const colors = getMeshColors(mesh.role, mesh.normalizedCenter, isHovered)
         const isCore = mesh.role === 'core'
-
+ 
         // Shift plate outward along its normal center vector when hovered to create a magnetic pop-out attraction effect
         const offsetPosition = (isHovered && !isCore)
           ? mesh.normalizedCenter.clone().normalize().multiplyScalar(0.045)
           : new THREE.Vector3(0, 0, 0)
-
+ 
         return (
           <group 
             key={mesh.name}
@@ -189,8 +189,9 @@ export function ChamferedViewCube() {
               }}
               onClick={e => {
                 e.stopPropagation()
-                // Normalized camera view vector
+                // Rotate model direction vector into world coordinate space
                 const viewDirection = mesh.normalizedCenter.clone().normalize()
+                viewDirection.applyEuler(new THREE.Euler(Math.PI / 2, 0, 0))
                 tweenCamera(viewDirection.multiplyScalar(5))
               }}
             >
