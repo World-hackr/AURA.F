@@ -1,5 +1,5 @@
 import { Canvas, type ThreeEvent } from '@react-three/fiber'
-import { BoxOutline, IsometricCamera, SceneManager, ChamferedViewCube, GimbalViewCube, ImportedModel } from '@aura/engine-3d'
+import { BoxOutline, IsometricCamera, SceneManager, ChamferedViewCube, GimbalViewCube, ImportedModel, InfiniteGridHelper } from '@aura/engine-3d'
 import { LeftPanel, RightPanel, CenterOverlays, AppSettings } from './components/UIPanels'
 import { AssetWorkspace } from './components/AssetWorkspace'
 import { useSpatialStore, createAssetObjectUrl } from '@aura/state-store'
@@ -157,11 +157,8 @@ function RoomCanvas() {
         {/* Dynamic viewport-based perspective/orthographic camera system */}
         <IsometricCamera />
 
-        {/* Dynamic technical CAD grid */}
-        <gridHelper 
-          args={[300, 300, '#111827', '#1f2937']} 
-          position={[0, -0.01, 0]} 
-        />
+        {/* Optimized technical infinite snapping grid */}
+        <InfiniteGridHelper gridStep={1.0} />
 
         {/* Lightweight visual/raycast floor for depth reference and spawning */}
         <PlacementSurface floorColor={floorColor} />

@@ -17,3 +17,4 @@ export { getFurnitureFootprint, getLocalFootprint } from './furnitureGeometry';
 export { ProceduralProjectComponent } from './components/ProceduralProjectComponent';
 export { SolidBox } from './components/SolidBox';
 export { SolidCylinder } from './components/SolidCylinder';
+export { InfiniteGridHelper } from './components/InfiniteGridHelper';
