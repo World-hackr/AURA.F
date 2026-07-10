@@ -2566,6 +2566,35 @@ export function AppSettings() {
               </button>
             </div>
           </div>
+
+          {/* Reset Workspace Database */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px', borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '8px' }}>
+            <button
+              onClick={() => {
+                if (confirm('Are you sure you want to clear the entire workspace database? All furniture designs and sketches will be deleted.')) {
+                  localStorage.removeItem('aura-spatial-storage');
+                  window.location.reload();
+                }
+              }}
+              style={{
+                width: '100%',
+                padding: '6px',
+                borderRadius: '4px',
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                background: 'rgba(239, 68, 68, 0.1)',
+                color: '#ef4444',
+                fontSize: '9px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                transition: 'all 0.15s',
+                textAlign: 'center'
+              }}
+              onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.25)' }}
+              onMouseOut={(e) => { e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)' }}
+            >
+              Reset Database
+            </button>
+          </div>
         </div>
       )}
     </div>

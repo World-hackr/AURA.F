@@ -152,6 +152,7 @@ function RoomCanvas() {
         }}
       >
         <color attach="background" args={['#000000']} />
+        <fog attach="fog" args={['#000000', 30, 200]} />
         <AdaptiveDpr pixelated />
         
         {/* Dynamic viewport-based perspective/orthographic camera system */}
