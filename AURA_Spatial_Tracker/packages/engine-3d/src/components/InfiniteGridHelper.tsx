@@ -16,13 +16,12 @@ export function InfiniteGridHelper({
   subGridSize = 0.1,
   gridColor = '#1e293b',
   subGridColor = '#0f172a',
-  fadeStart = 50.0,
-  fadeEnd = 160.0
+  fadeStart = 60.0,
+  fadeEnd = 180.0
 }: InfiniteGridHelperProps) {
   const meshRef = useRef<THREE.Mesh>(null)
   const { camera } = useThree()
 
-  // Define uniforms outside so they aren't reconstructed every render
   const uniformsRef = useRef({
     uCameraPos: { value: new THREE.Vector3() },
     uGridSize: { value: gridSize },
@@ -37,16 +36,13 @@ export function InfiniteGridHelper({
     if (!meshRef.current) return
     const material = meshRef.current.material as THREE.ShaderMaterial
     if (material.uniforms && material.uniforms.uCameraPos) {
-      // Pass the camera's XZ horizontal position directly to the shader
       material.uniforms.uCameraPos.value.set(camera.position.x, 0, camera.position.z)
     }
   })
 
-  // GLSL Shader code for generating infinitely tiling, anti-aliased grid lines
   const vertexShader = `
     varying vec3 vWorldPosition;
     void main() {
-      // Output large world positions directly to draw an infinite plane
       vec4 worldPosition = modelMatrix * vec4(position, 1.0);
       vWorldPosition = worldPosition.xyz;
       gl_Position = projectionMatrix * viewMatrix * worldPosition;
@@ -63,36 +59,40 @@ export function InfiniteGridHelper({
     uniform float uFadeEnd;
     varying vec3 vWorldPosition;
 
-    // Calculates crisp anti-aliased grid lines procedurally
-    float getGridLine(float position, float spacing, float width) {
-      float dist = abs(fract(position / spacing - 0.5) - 0.5) / (width / spacing);
-      float line = 1.0 - min(dist, 1.0);
-      return line;
+    // Calculates constant screen-space width grid lines using derivatives (fwidth)
+    float getGridLine(float position, float spacing, float pixelWidth) {
+      // Find how fast the world coordinates change per screen pixel
+      float dx = fwidth(position);
+      
+      // Distance to the nearest grid interval
+      float distToLine = abs(fract(position / spacing - 0.5) - 0.5) * spacing;
+      
+      // Scale world width line boundary to match target pixel thickness
+      float worldWidth = pixelWidth * dx;
+      
+      // Perform screen-space anti-aliasing
+      return smoothstep(worldWidth, 0.0, distToLine);
     }
 
     void main() {
-      // Calculate radial distance of the pixel from the camera's projection target coordinate
       float d = distance(vWorldPosition.xz, uCameraPos.xz);
-      
-      // Perform smooth circular fading so there are no sharp clipping edges
       float fade = 1.0 - smoothstep(uFadeStart, uFadeEnd, d);
       if (fade <= 0.0) discard;
 
-      // Draw major grid lines (1m increments)
-      float majorX = getGridLine(vWorldPosition.x, uGridSize, 0.012);
-      float majorZ = getGridLine(vWorldPosition.z, uGridSize, 0.012);
+      // Draw major grid lines (constant screen-space width of 1.4 pixels)
+      float majorX = getGridLine(vWorldPosition.x, uGridSize, 1.4);
+      float majorZ = getGridLine(vWorldPosition.z, uGridSize, 1.4);
       float major = max(majorX, majorZ);
 
-      // Draw minor grid lines (10cm increments)
-      float minorX = getGridLine(vWorldPosition.x, uSubGridSize, 0.004);
-      float minorZ = getGridLine(vWorldPosition.z, uSubGridSize, 0.004);
+      // Draw minor grid lines (constant screen-space width of 0.8 pixels)
+      float minorX = getGridLine(vWorldPosition.x, uSubGridSize, 0.8);
+      float minorZ = getGridLine(vWorldPosition.z, uSubGridSize, 0.8);
       float minor = max(minorX, minorZ);
 
-      // Combine colors: major grid lines overlay minor grid lines
+      // Mix colors based on line calculations
       vec3 color = mix(vec3(0.0), uSubGridColor, minor);
       color = mix(color, uGridColor, major);
 
-      // Interpolate alpha opacity based on the soft fade factor
       float alpha = max(major * 0.45, minor * 0.16) * fade;
       if (alpha < 0.005) discard;
 
