@@ -125,30 +125,6 @@ export function ChamferedViewCube() {
     }
   }
 
-  // Returns text label and 3D rotation based on face direction coordinates
-  const getFaceLabelInfo = (normCenter: THREE.Vector3) => {
-    const absX = Math.abs(normCenter.x)
-    const absY = Math.abs(normCenter.y)
-    const absZ = Math.abs(normCenter.z)
-
-    if (absX > absY && absX > absZ) {
-      return {
-        text: normCenter.x > 0 ? 'R' : 'L',
-        rotation: [0, normCenter.x > 0 ? Math.PI / 2 : -Math.PI / 2, 0] as [number, number, number]
-      }
-    }
-    if (absY > absX && absY > absZ) {
-      return {
-        text: normCenter.y > 0 ? 'T' : 'D', // T = Top, D = Down
-        rotation: [normCenter.y > 0 ? -Math.PI / 2 : Math.PI / 2, 0, 0] as [number, number, number]
-      }
-    }
-    return {
-      text: normCenter.z > 0 ? 'F' : 'B', // F = Front, B = Back
-      rotation: [0, normCenter.z > 0 ? 0 : Math.PI, 0] as [number, number, number]
-    }
-  }
-
   return (
     <group scale={[65, 65, 65]} rotation={[-Math.PI / 2, 0, 0]}>
       {/* Localized lighting specifically for this ViewCube's portal */}
@@ -217,28 +193,6 @@ export function ChamferedViewCube() {
               {/* Only render wireframe outlines for outer buttons, not the core light source */}
               {!isCore && <Edges scale={1.0} color={colors.edge} lineWidth={isHovered ? 2.2 : 1.2} />}
             </mesh>
-            
-            {/* Draw sharp, technical vector labels offset on the faces */}
-            {mesh.role === 'face' && (() => {
-              const labelInfo = getFaceLabelInfo(mesh.normalizedCenter)
-              // Slightly push text past geometry face to avoid clipping
-              const textPos = mesh.normalizedCenter.clone().normalize().multiplyScalar(0.505)
-              return (
-                <Text
-                  position={textPos}
-                  rotation={labelInfo.rotation}
-                  fontSize={0.24}
-                  color={isHovered ? '#ffffff' : '#94a3b8'}
-                  anchorX="center"
-                  anchorY="middle"
-                  material-depthTest={true}
-                  material-depthWrite={true}
-                  renderOrder={4}
-                >
-                  {labelInfo.text}
-                </Text>
-              )
-            })()}
           </group>
         )
       })}
